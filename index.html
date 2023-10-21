@@ -240,6 +240,12 @@
                         neighbor.f = neighbor.g + neighbor.h;
                         neighbor.parent = current;
 
+                        console.log("neighbor: ", neighbor);
+                        console.log("neighbor.g: ", neighbor.g);
+                        console.log("neighbor.h: ", neighbor.h);
+                        console.log("neighbor.f: ", neighbor.f);
+                        console.log("neighbor.parent: ", neighbor.parent);
+
                         if (!openSet.includes(neighbor)) {
                             openSet.push(neighbor);
                         }
