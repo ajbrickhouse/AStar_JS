@@ -9,6 +9,11 @@
 #### Mazes generated with
 - [Maze Generator](https://keesiemeijer.github.io/maze-generator/#generate)
 
+#### Demo in codespace
+- Open this repo in a codespace
+- Start the server.py
+- Open link listed under port 8000 (ports tab above the terminal)
+    
 #### Results
 <figure>
   <div>
