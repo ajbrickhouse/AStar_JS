@@ -218,7 +218,8 @@
                 closedSet.push(current);
 
                 let neighbors = current.neighbors;
-                
+                console.log("neighbors: ", neighbors);
+                console.log("neighbors.length: ", neighbors.length);
                 for (let i = 0; i < neighbors.length; i++) {
                     let neighbor = neighbors[i];
 
@@ -229,8 +230,7 @@
 
                     const dx = current.x - neighbor.x;
                     const dy = current.y - neighbor.y;
-                    const d = dx === 0 || dy === 0 ? 1 : Math.sqrt(
-                        2); // 1 if vertical/horizontal neighbor, sqrt(2) if diagonal
+                    const d = dx === 0 || dy === 0 ? 1 : Math.sqrt(2); // 1 if vertical/horizontal neighbor, sqrt(2) if diagonal
 
                     const tentativeG = current.g + d;
 
