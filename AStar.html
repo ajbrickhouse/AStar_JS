@@ -243,7 +243,7 @@
                 grid[x] = new Array(rows);
                 for (let y = 0; y < rows; y++) {
                     grid[x][y] = new GridPoint(x, y);
-                    grid[x][y].walkable = !!mazeData[rn][x][y];
+                    grid[x][y].walkable = !!mazeData[rn][y][x];
                 }
             }
 
@@ -254,8 +254,8 @@
             }
 
             // define start and end points
-            start = grid[1][0];
-            end = grid[cols - 2][cols - 1];
+            start = grid[0][1];
+            end = grid[cols - 1][cols - 2];
             // add start as first element to be evaluated
             openSet.push(start);
         }
