@@ -76,7 +76,6 @@ if "__main__" == __name__:
         else:
             print(row)
 
-
     print("-" * 33, " <-- Maze data --> ", "-" * 33, "\n")
 
     

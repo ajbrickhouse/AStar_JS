@@ -1,12 +1,14 @@
-import http.server
-import socketserver
+from flask import Flask, send_from_directory, render_template
 
-class MyHandler(http.server.SimpleHTTPRequestHandler):
-    def do_GET(self):
-        self.path = '/AStar.html'
-        return super().do_GET()
+app = Flask(__name__, static_folder=r'E:/Users/accou/Documents/GitHub/AStar_JS')  # Replace 'path_to_your_folder' with the directory where your HTML and JS files are located
 
-PORT = 8000
-with socketserver.TCPServer(("", PORT), MyHandler) as httpd:
-    print(f"Serving at port {PORT}")
-    httpd.serve_forever()
+@app.route('/')
+def index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+@app.route('/<path:filename>')
+def serve_file(filename):
+    return send_from_directory(app.static_folder, filename)
+
+if __name__ == '__main__':
+    app.run(debug=True)

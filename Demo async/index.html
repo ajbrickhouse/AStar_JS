@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Async JS Demo</title>
+    <!-- <script type="text/javascript" src="./script.js"></script> -->
+    <!-- <script type="text/javascript" src="/script.js"></script> -->
+    <!-- <script type="text/javascript" src="http://localhost:8000/Demo%20async/script.js"></script> -->
+    <!-- <script type="text/javascript" src="script.js"></script> -->
+    <script type="text/javascript" src="script.js" defer></script>
+
+
+</head>
+
+<body>
+    <h1>Async JavaScript Demo</h1>
+    <button id="fetchDataBtn">Fetch Data</button>
+    <div id="result"></div>
+
+    <script>
+        window.sharedData = null;
+        // Accessing globally shared data
+        window.addEventListener('DOMContentLoaded', (event) => {
+            document.getElementById('fetchDataBtn').addEventListener('click', async () => {
+                await fetchData();  // Wait until data is fetched
+                console.log("Shared Data: ", window.sharedData);
+                if (window.sharedData) {
+                    document.getElementById('result').innerHTML = JSON.stringify(window.sharedData);
+                }
+            });
+        });
+        
+    </script>
+</body>
+
+</html>
