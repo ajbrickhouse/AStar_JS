@@ -19,26 +19,29 @@
         canvas {
             border: 2px solid black;
         }
+
+        #fetchDataBtn {
+            width: 584px;
+            /* This will make the button expand to the full width of its container */
+        }
     </style>
 
 </head>
 
 <body>
-    <div id="mazeData"></div>
-        <div id="canvas">
-            <canvas id="gridCanvas" width="623" height="623"></canvas><br>
-        </div>
-        <div>
-            <button id="fetchDataBtn">Fetch Data</button>
-        </div>
-        <div id="result"></div>
-        
-    </div> 
+    <div id="canvasContainer" style="width:623px;">
+        <!-- Set the width the same as the canvas -->
+        <canvas id="gridCanvas" width="623" height="623"></canvas><br>
+        <button id="fetchDataBtn">Fetch Data</button>
+    </div>
+    <div id="result"></div>
+
     <script>
         window.sharedData = null;
 
         // Get a reference to the canvas element
         const canvas = document.getElementById("gridCanvas");
+        canvas.willReadFrequently = true;
         const ctx = canvas.getContext("2d");
 
         // Constants
@@ -65,10 +68,11 @@
         // obstacles
         let obstacles = [];
         // Starting position
-        let start;
+        let start = null;
         // The target position
-        let end;
+        let end = null;
         let path = [];
+        let draggingEnd = false;
 
         // GridPoint class definition
         class GridPoint {
@@ -120,6 +124,7 @@
         function drawState() {
             // Draw the current state of the grid
             // fill grid with color
+            console.log("Drawing state");
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < cols; j++) {
                     grid[i][j].show("DarkOrange"); // Default color
@@ -137,7 +142,7 @@
                 point.show("SeaGreen");
             }
 
-            start.show("DeepSkyBlue");
+            start.show("LimeGreen");
             end.show("red");
         }
 
@@ -174,29 +179,31 @@
                 }
             }
 
-            // define start and end points
-            start = grid[1][1];
-            end = grid[cols - 2][cols - 2];
-            console.log("start: ", start);
-            console.log("end: ", end);
-            // add start as first element to be evaluated
-            openSet.push(start);
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < cols; j++) {
+                    grid[i][j].updateNeighbors(grid);
+                }
+            }
+
         }
 
         // A* Search
         function search() {
+            // print out start and end
+            console.log("start: " + start.x + ", " + start.y);
+            console.log("end: " + end.x + ", " + end.y);
+            console.log("Open Set: " + openSet.length);
+            console.log("Closed Set: " + start);
             // Add drawing code to represent the states visually on the canvas
             while (openSet.length > 0) {
                 //assumption lowest index is the first one to begin with
                 let lowestIndex = 0;
-                console.log("openSet: ", openSet.length);
                 for (let i = 0; i < openSet.length; i++) {
                     if (openSet[i].f < openSet[lowestIndex].f) {
                         lowestIndex = i;
                     }
                 }
                 let current = openSet[lowestIndex];
-                console.log("current: ", current);
                 if (current === end) {
                     let temp = current;
                     path.push(temp);
@@ -218,8 +225,7 @@
                 closedSet.push(current);
 
                 let neighbors = current.neighbors;
-                console.log("neighbors: ", neighbors);
-                console.log("neighbors.length: ", neighbors.length);
+
                 for (let i = 0; i < neighbors.length; i++) {
                     let neighbor = neighbors[i];
 
@@ -230,7 +236,8 @@
 
                     const dx = current.x - neighbor.x;
                     const dy = current.y - neighbor.y;
-                    const d = dx === 0 || dy === 0 ? 1 : Math.sqrt(2); // 1 if vertical/horizontal neighbor, sqrt(2) if diagonal
+                    const d = dx === 0 || dy === 0 ? 1 : Math.sqrt(
+                    2); // 1 if vertical/horizontal neighbor, sqrt(2) if diagonal
 
                     const tentativeG = current.g + d;
 
@@ -240,12 +247,6 @@
                         neighbor.f = neighbor.g + neighbor.h;
                         neighbor.parent = current;
 
-                        console.log("neighbor: ", neighbor);
-                        console.log("neighbor.g: ", neighbor.g);
-                        console.log("neighbor.h: ", neighbor.h);
-                        console.log("neighbor.f: ", neighbor.f);
-                        console.log("neighbor.parent: ", neighbor.parent);
-
                         if (!openSet.includes(neighbor)) {
                             openSet.push(neighbor);
                         }
@@ -254,28 +255,92 @@
                 // if no solution
                 if (openSet.length === 0) {
                     drawState();
-                    drawNoPath();
+                    // drawNoPath();
                 }
             }
         }
 
-                // Accessing globally shared data
+        function clearAll() {
+            // clear f, g, h, parent, openSet, closedSet, and path
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < cols; j++) {
+                    grid[i][j].f = 0;
+                    grid[i][j].g = 0;
+                    grid[i][j].h = 0;
+                    grid[i][j].parent = undefined;
+                }
+            }
+            openSet = [];
+            closedSet = [];
+            path = [];
+            if (start) {
+                openSet.push(start);
+            }
+        }
+
+        // Accessing globally shared data
         window.addEventListener('DOMContentLoaded', (event) => {
             document.getElementById('fetchDataBtn').addEventListener('click', async () => {
-                await convertMaze("/mazes/maze.png", 29);  // Wait until data is fetched
+                await convertMaze("/mazes/maze4.png", 29); // Wait until data is fetched
                 let mazeData = window.sharedData;
-                
-                console.log("Shared Data: ", window.sharedData);
-                console.log("mazeData: ", mazeData);
-                if (window.sharedData) {
-                    document.getElementById('result').innerHTML = JSON.stringify(window.sharedData);
-                }
-       
+                // define start and end points
+
                 init(mazeData);
+                start = grid[0][1];
+                // end = grid[cols - 1][cols - 2];
+                // check if end is null
+                if (!end) {
+                    end = grid[cols - 1][cols - 2];
+                }
+                // add start as first element to be evaluated
+                openSet.push(start);
                 search();
             });
         });
 
+
+        // Function to get the grid coordinates from mouse position
+        function getMousePos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            const x = evt.clientX - rect.left;
+            const y = evt.clientY - rect.top;
+            return {
+                x: Math.floor(x / cellSize),
+                y: Math.floor(y / cellSize)
+            };
+        }
+
+        // Add event listener for mousedown
+        canvas.addEventListener("mousedown", function (evt) {
+            const pos = getMousePos(canvas, evt);
+            // Check if clicked on the end point
+            if (pos.x === end.x && pos.y === end.y) {
+                draggingEnd = true;
+            }
+        }, false);
+
+        // Add event listener for mousemove
+        canvas.addEventListener("mousemove", function (evt) {
+            if (!draggingEnd) return;
+            const pos = getMousePos(canvas, evt);
+            // Check if the area is walkable before moving the endpoint
+            if (grid[pos.x][pos.y].walkable) {
+                end.x = pos.x;
+                end.y = pos.y;
+                console.log("Moving end point to (" + end.x + ", " + end.y + ")");
+                clearAll(); // Clear previous state variables
+                init(window.sharedData); // Reinitialize grid
+                start = grid[0][1]; // Reinitialize start
+                end = grid[end.x][end.y]; // Reinitialize end
+                openSet.push(start); // Push new start into openSet
+                search(); // Restart search
+            }
+        }, false);
+
+        // Add event listener for mouseup
+        canvas.addEventListener("mouseup", function (evt) {
+            draggingEnd = false;
+        }, false);
     </script>
 </body>
 

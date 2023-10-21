@@ -20,8 +20,7 @@ async function convertMaze(imagePath, colCount) {
     window.sharedData = null;
     const canvas = document.createElement('canvas');
     canvas.willReadFrequently = true;
-    document.body.appendChild(canvas);
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     // ctx.willReadFrequently(true);
     const img = await loadImage(imagePath);
     if(!img) {
