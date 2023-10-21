@@ -13,7 +13,8 @@
 - Open this repo in a codespace
 - Start the server.py
 - Open link listed under port 8000 (ports tab above the terminal)
-
+  - <img src="https://github.com/ajbrickhouse/AStar_JS/assets/106787118/890038cc-877c-4f14-803f-9cd449693c1c" style="width: 600px; padding: 5px;">
+    
 #### Results
 <figure>
   <div>
