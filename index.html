@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="convertMaze.js" defer></script>
     <title>Canvas Grid</title>
     <style>
         body,
@@ -23,14 +24,19 @@
 </head>
 
 <body>
-    <div id="canvas">
-        <canvas id="gridCanvas" width="623" height="623"></canvas><br>
-    </div>
-    <script id="converMaze">
-
-
-    </script>
+    <div id="mazeData"></div>
+        <div id="canvas">
+            <canvas id="gridCanvas" width="623" height="623"></canvas><br>
+        </div>
+        <div>
+            <button id="fetchDataBtn">Fetch Data</button>
+        </div>
+        <div id="result"></div>
+        
+    </div> 
     <script>
+        window.sharedData = null;
+
         // Get a reference to the canvas element
         const canvas = document.getElementById("gridCanvas");
         const ctx = canvas.getContext("2d");
@@ -63,10 +69,6 @@
         // The target position
         let end;
         let path = [];
-        // let mazeData
-        const mazeData  = await processMazeData('/mazes/maze.png', 29).then(result => result.data);
-
-        console.log("post-mazeData", mazeData);
 
         // GridPoint class definition
         class GridPoint {
@@ -107,16 +109,6 @@
             }
         }
 
-        async function processMazeData(mazeImagePath, mazeSize) {
-            try {
-                let result = await convertMaze(mazeImagePath, mazeSize);
-                let jsListData = result.jsList;
-                return jsListData;
-            } catch (error) {
-                console.error("Error fetching post-mazeData:", error);
-            }
-        }
-
         // Heuristic function to calculate the distance between two points
         function heuristic(a, b) {
             const dx = Math.abs(a.x - b.x);
@@ -144,6 +136,9 @@
             for (let point of path) {
                 point.show("SeaGreen");
             }
+
+            start.show("DeepSkyBlue");
+            end.show("red");
         }
 
         // Draw the "No Path Found" text
@@ -159,34 +154,31 @@
         }
 
         // Initialize grid
-        function init() {
+        function init(mazeData) {
             if (!mazeData || mazeData.length === 0) {
                 console.error("mazeData is not initialized");
                 return;
             }
             // let rn = Math.floor(Math.random() * 3);
-            let rn = 0;
 
-            if (!mazeData[rn]) {
-                console.error("Sub-array mazeData[" + rn + "] is undefined");
-                return;
-            }
 
             for (let x = 0; x < cols; x++) {
                 grid[x] = new Array(rows);
                 for (let y = 0; y < rows; y++) {
-                    if (mazeData[rn][y] && mazeData[rn][y][x] !== undefined) {
+                    if (mazeData[y][x] !== undefined) {
                         grid[x][y] = new GridPoint(x, y);
-                        grid[x][y].walkable = !!mazeData[rn][y][x];
+                        grid[x][y].walkable = !!mazeData[y][x];
                     } else {
-                        // console.error("Unable to access mazeData[" + rn + "][" + y + "][" + x + "]");
+                        // console.error("Unable to access mazeData[" + y + "][" + x + "]");
                     }
                 }
             }
 
             // define start and end points
-            start = grid[0][1];
-            end = grid[cols - 1][cols - 2];
+            start = grid[1][1];
+            end = grid[cols - 2][cols - 2];
+            console.log("start: ", start);
+            console.log("end: ", end);
             // add start as first element to be evaluated
             openSet.push(start);
         }
@@ -197,13 +189,14 @@
             while (openSet.length > 0) {
                 //assumption lowest index is the first one to begin with
                 let lowestIndex = 0;
+                console.log("openSet: ", openSet.length);
                 for (let i = 0; i < openSet.length; i++) {
                     if (openSet[i].f < openSet[lowestIndex].f) {
                         lowestIndex = i;
                     }
                 }
                 let current = openSet[lowestIndex];
-
+                console.log("current: ", current);
                 if (current === end) {
                     let temp = current;
                     path.push(temp);
@@ -225,7 +218,7 @@
                 closedSet.push(current);
 
                 let neighbors = current.neighbors;
-
+                
                 for (let i = 0; i < neighbors.length; i++) {
                     let neighbor = neighbors[i];
 
@@ -260,9 +253,23 @@
             }
         }
 
-        // Call the search function
-        init();
-        search();
+                // Accessing globally shared data
+        window.addEventListener('DOMContentLoaded', (event) => {
+            document.getElementById('fetchDataBtn').addEventListener('click', async () => {
+                await convertMaze("/mazes/maze.png", 29);  // Wait until data is fetched
+                let mazeData = window.sharedData;
+                
+                console.log("Shared Data: ", window.sharedData);
+                console.log("mazeData: ", mazeData);
+                if (window.sharedData) {
+                    document.getElementById('result').innerHTML = JSON.stringify(window.sharedData);
+                }
+       
+                init(mazeData);
+                search();
+            });
+        });
+
     </script>
 </body>
 
