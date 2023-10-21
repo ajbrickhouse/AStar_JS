@@ -4,9 +4,10 @@
 [Pathfinding with Javascript: The A* Algorithm](https://dev.to/codesphere/pathfinding-with-javascript-the-a-algorithm-3jlb)
 - Added diagnal movement
 - Added obstacles
+- Converted to use canvas
 
 #### Mazes generated with
-[Maze Generator](https://keesiemeijer.github.io/maze-generator/#generate)
+- [Maze Generator](https://keesiemeijer.github.io/maze-generator/#generate)
 
 #### Results
 <figure>
