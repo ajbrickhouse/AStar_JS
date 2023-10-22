@@ -2,12 +2,14 @@
 
 #### Guide used
 - [Pathfinding with Javascript: The A* Algorithm](https://dev.to/codesphere/pathfinding-with-javascript-the-a-algorithm-3jlb)
-  - Added diagnal movement
-  - Added obstacles
-  - Converted to use canvas
-  - Drag and drop end point with updating path
-  - Smoothed line drawn for path
-  - Reads data directly from maze image
+
+#### Updates
+- Added diagnal movement
+- Added obstacles
+- Converted to use canvas
+- Drag and drop end point with updating path
+- Smoothed line drawn for path
+- Reads data directly from maze image
 
 #### Mazes generated with
 - [Maze Generator](https://keesiemeijer.github.io/maze-generator/#generate)
