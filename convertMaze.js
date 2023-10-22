@@ -62,7 +62,7 @@ async function convertMaze(imagePath, colCount) {
             const green = pixelData[1];
             const blue = pixelData[2];
             
-            const isWhite = (red + green + blue) / 3 >= 200;
+            const isWhite = (red + green + blue) / 3 >= 230;
             rowList.push(isWhite ? 1 : 0);
         }
         jsList.push(rowList);

@@ -31,7 +31,7 @@
 <body>
     <div id="canvasContainer" style="width:623px;">
         <!-- Set the width the same as the canvas -->
-        <canvas id="gridCanvas" width="623" height="623"></canvas><br>
+        <canvas id="gridCanvas" width="500" height="623"></canvas><br>
         <button id="fetchDataBtn">Fetch Data</button>
     </div>
     <div id="result"></div>
@@ -45,10 +45,10 @@
         const ctx = canvas.getContext("2d");
 
         // Constants
-        const cols = 29;
-        const rows = 29;
+        const cols = 201;
+        const rows = 201;
 
-        const cellSize = 20; // Size of each cell in pixels
+        const cellSize = 6; // Size of each cell in pixels
         const canvasWidth = cols * cellSize;
         const canvasHeight = rows * cellSize;
 
@@ -96,10 +96,10 @@
                 if (y > 0) this.neighbors.push(grid[x][y - 1]);
 
                 // Adding Diagonal Neighbors (also adjusted for rows)
-                if (x > 0 && y > 0) this.neighbors.push(grid[x - 1][y - 1]);
-                if (x < cols - 1 && y > 0) this.neighbors.push(grid[x + 1][y - 1]);
-                if (x > 0 && y < rows - 1) this.neighbors.push(grid[x - 1][y + 1]); // adjusted for rows
-                if (x < cols - 1 && y < rows - 1) this.neighbors.push(grid[x + 1][y + 1]); // adjusted for rows
+                // if (x > 0 && y > 0) this.neighbors.push(grid[x - 1][y - 1]);
+                // if (x < cols - 1 && y > 0) this.neighbors.push(grid[x + 1][y - 1]);
+                // if (x > 0 && y < rows - 1) this.neighbors.push(grid[x - 1][y + 1]); // adjusted for rows
+                // if (x < cols - 1 && y < rows - 1) this.neighbors.push(grid[x + 1][y + 1]); // adjusted for rows
             }
 
             show(color) {
@@ -127,15 +127,15 @@
             console.log("Drawing state");
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < cols; j++) {
-                    grid[i][j].show("DarkOrange"); // Default color
+                    grid[i][j].show("white"); // Default color
                 }
             }
             for (let point of openSet) {
-                point.show("OrangeRed");
+                point.show("red");
             }
 
             for (let point of closedSet) {
-                point.show("Tomato");
+                point.show("tomato");
             }
 
             for (let point of path) {
@@ -143,7 +143,32 @@
             }
 
             start.show("LimeGreen");
+            // add an S to the start point
+
+            const font = "20px Arial";
+
+            start.show("LimeGreen");
+            ctx.fillStyle = "white";
+            ctx.fillRect(start.x * w + cellSize, start.y * h + cellSize, 16, 21);
+            ctx.strokeStyle = "LimeGreen";
+            ctx.strokeRect(start.x * w + cellSize, start.y * h + cellSize, 16, 21);
+            ctx.fillStyle = "black";
+            ctx.font = font;
+            ctx.fillText("S", start.x * w + cellSize + 1, start.y * h + cellSize + 18);
+
             end.show("red");
+            ctx.fillStyle = "white";
+            ctx.fillRect(end.x * w + cellSize, end.y * h + cellSize, 16, 21);
+            ctx.strokeStyle = "red";
+            ctx.strokeRect(end.x * w + cellSize, end.y * h + cellSize, 16, 21);
+            ctx.fillStyle = "black";
+            ctx.font = font;
+            ctx.fillText("E", end.x * w + cellSize + 1, end.y * h + cellSize + 18);
+            // draw a square around the text
+
+
+
+
         }
 
         // Draw the "No Path Found" text
@@ -154,7 +179,7 @@
 
             // Display the "No Path Found" text
             ctx.fillStyle = "black";
-            ctx.font = "30px Arial";
+            ctx.font = "14px Verdana";
             ctx.fillText("No Path Found", canvasWidth / 3, canvasHeight / 2);
         }
 
@@ -190,10 +215,6 @@
         // A* Search
         function search() {
             // print out start and end
-            console.log("start: " + start.x + ", " + start.y);
-            console.log("end: " + end.x + ", " + end.y);
-            console.log("Open Set: " + openSet.length);
-            console.log("Closed Set: " + start);
             // Add drawing code to represent the states visually on the canvas
             while (openSet.length > 0) {
                 //assumption lowest index is the first one to begin with
@@ -236,8 +257,7 @@
 
                     const dx = current.x - neighbor.x;
                     const dy = current.y - neighbor.y;
-                    const d = dx === 0 || dy === 0 ? 1 : Math.sqrt(
-                    2); // 1 if vertical/horizontal neighbor, sqrt(2) if diagonal
+                    const d = dx === 0 || dy === 0 ? 1 : 1; 
 
                     const tentativeG = current.g + d;
 
@@ -281,7 +301,7 @@
         // Accessing globally shared data
         window.addEventListener('DOMContentLoaded', (event) => {
             document.getElementById('fetchDataBtn').addEventListener('click', async () => {
-                await convertMaze("/mazes/maze4.png", 29); // Wait until data is fetched
+                await convertMaze("/mazes/mazeLarge.png", 201); // Wait until data is fetched
                 let mazeData = window.sharedData;
                 // define start and end points
 
@@ -290,7 +310,7 @@
                 // end = grid[cols - 1][cols - 2];
                 // check if end is null
                 if (!end) {
-                    end = grid[cols - 1][cols - 2];
+                    end = grid[cols - 15][cols - 22];
                 }
                 // add start as first element to be evaluated
                 openSet.push(start);
@@ -313,8 +333,10 @@
         // Add event listener for mousedown
         canvas.addEventListener("mousedown", function (evt) {
             const pos = getMousePos(canvas, evt);
-            // Check if clicked on the end point
-            if (pos.x === end.x && pos.y === end.y) {
+            const tolerance = 10;  // Set a tolerance value in pixels
+            
+            // Check if clicked within the tolerance of the end point
+            if (Math.abs(pos.x - end.x) < tolerance && Math.abs(pos.y - end.y) < tolerance) {
                 draggingEnd = true;
             }
         }, false);
@@ -327,7 +349,6 @@
             if (grid[pos.x][pos.y].walkable) {
                 end.x = pos.x;
                 end.y = pos.y;
-                console.log("Moving end point to (" + end.x + ", " + end.y + ")");
                 clearAll(); // Clear previous state variables
                 init(window.sharedData); // Reinitialize grid
                 start = grid[0][1]; // Reinitialize start
