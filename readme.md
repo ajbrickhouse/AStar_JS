@@ -5,6 +5,8 @@
   - Added diagnal movement
   - Added obstacles
   - Converted to use canvas
+  - Drag and drop end point with updating path
+  - Smoothed line drawn for path
 
 #### Mazes generated with
 - [Maze Generator](https://keesiemeijer.github.io/maze-generator/#generate)

@@ -14,6 +14,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            background-color: #171b22;
         }
 
         canvas {
@@ -29,12 +30,10 @@
 </head>
 
 <body>
-    <div id="canvasContainer" style="width:623px;">
-        <!-- Set the width the same as the canvas -->
-        <canvas id="gridCanvas" width="500" height="623"></canvas><br>
+    <div id="canvasContainer">
+        <canvas id="gridCanvas" width="500" height="500"></canvas><br>
         <button id="fetchDataBtn">Fetch Data</button>
     </div>
-    <div id="result"></div>
 
     <script>
         window.sharedData = null;
@@ -48,7 +47,7 @@
         const cols = 201;
         const rows = 201;
 
-        const cellSize = 6; // Size of each cell in pixels
+        const cellSize = 5; // Size of each cell in pixels
         const canvasWidth = cols * cellSize;
         const canvasHeight = rows * cellSize;
 
@@ -127,27 +126,31 @@
             console.log("Drawing state");
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < cols; j++) {
-                    grid[i][j].show("white"); // Default color
+                    grid[i][j].show("#e6edf3"); // Default color
                 }
             }
-            for (let point of openSet) {
-                point.show("red");
-            }
+            // for (let point of openSet) {
+            //     point.show("red");
+            // }
 
-            for (let point of closedSet) {
-                point.show("tomato");
-            }
+            // for (let point of closedSet) {
+            //     point.show("tomato");
+            // }
 
-            for (let point of path) {
-                point.show("SeaGreen");
-            }
+            // for (let point of path) {
+            //     point.show("SeaGreen");
+            // }
+        }
 
-            start.show("LimeGreen");
-            // add an S to the start point
-
+        function pointDressing() {
             const font = "20px Arial";
 
             start.show("LimeGreen");
+            ctx.shadowColor = 'LimeGreen';
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = "LimeGreen";
+            ctx.fillRect(end.x * w + cellSize, end.y * h + cellSize, 16, 21);
+            ctx.shadowBlur = 0;
             ctx.fillStyle = "white";
             ctx.fillRect(start.x * w + cellSize, start.y * h + cellSize, 16, 21);
             ctx.strokeStyle = "LimeGreen";
@@ -157,6 +160,11 @@
             ctx.fillText("S", start.x * w + cellSize + 1, start.y * h + cellSize + 18);
 
             end.show("red");
+            ctx.shadowColor = 'red';
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = "red";
+            ctx.fillRect(end.x * w + cellSize, end.y * h + cellSize, 16, 21);
+            ctx.shadowBlur = 0;
             ctx.fillStyle = "white";
             ctx.fillRect(end.x * w + cellSize, end.y * h + cellSize, 16, 21);
             ctx.strokeStyle = "red";
@@ -164,13 +172,29 @@
             ctx.fillStyle = "black";
             ctx.font = font;
             ctx.fillText("E", end.x * w + cellSize + 1, end.y * h + cellSize + 18);
-            // draw a square around the text
 
-
-
-
+            ctx.shadowBlur = 0;
         }
 
+        function drawPath() {
+            if (path.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(path[0].x * w + w / 2, path[0].y * h + h / 2);
+                for (let i = 1; i < path.length; i++) {
+                    const midX = (path[i].x * w + path[i - 1].x * w) / 2;
+                    const midY = (path[i].y * h + path[i - 1].y * h) / 2;
+                    ctx.quadraticCurveTo(
+                        path[i - 1].x * w + w / 2, path[i - 1].y * h + h / 2,
+                        midX + w / 2, midY + h / 2
+                    );
+                }
+                ctx.lineTo(path[path.length - 1].x * w + w / 2, path[path.length - 1].y * h + h / 2);
+                ctx.strokeStyle = "blue";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.closePath();
+            }
+        }
         // Draw the "No Path Found" text
         function drawNoPath() {
             // Draw a white rectangle as background
@@ -233,9 +257,9 @@
                         temp = temp.parent;
                     }
                     console.log("DONE!");
-
                     drawState();
-
+                    drawPath();
+                    pointDressing();
                     return;
                 }
 
@@ -257,7 +281,7 @@
 
                     const dx = current.x - neighbor.x;
                     const dy = current.y - neighbor.y;
-                    const d = dx === 0 || dy === 0 ? 1 : 1; 
+                    const d = dx === 0 || dy === 0 ? 1 : 1;
 
                     const tentativeG = current.g + d;
 
@@ -275,7 +299,7 @@
                 // if no solution
                 if (openSet.length === 0) {
                     drawState();
-                    // drawNoPath();
+                    drawNoPath();
                 }
             }
         }
@@ -298,6 +322,17 @@
             }
         }
 
+        // Function to get the grid coordinates from mouse position
+        function getMousePos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            const x = evt.clientX - rect.left;
+            const y = evt.clientY - rect.top;
+            return {
+                x: Math.floor(x / cellSize),
+                y: Math.floor(y / cellSize)
+            };
+        }
+
         // Accessing globally shared data
         window.addEventListener('DOMContentLoaded', (event) => {
             document.getElementById('fetchDataBtn').addEventListener('click', async () => {
@@ -314,27 +349,16 @@
                 }
                 // add start as first element to be evaluated
                 openSet.push(start);
+                path = [];
                 search();
             });
         });
 
-
-        // Function to get the grid coordinates from mouse position
-        function getMousePos(canvas, evt) {
-            const rect = canvas.getBoundingClientRect();
-            const x = evt.clientX - rect.left;
-            const y = evt.clientY - rect.top;
-            return {
-                x: Math.floor(x / cellSize),
-                y: Math.floor(y / cellSize)
-            };
-        }
-
         // Add event listener for mousedown
         canvas.addEventListener("mousedown", function (evt) {
             const pos = getMousePos(canvas, evt);
-            const tolerance = 10;  // Set a tolerance value in pixels
-            
+            const tolerance = 10; // Set a tolerance value in pixels
+
             // Check if clicked within the tolerance of the end point
             if (Math.abs(pos.x - end.x) < tolerance && Math.abs(pos.y - end.y) < tolerance) {
                 draggingEnd = true;
@@ -358,10 +382,67 @@
             }
         }, false);
 
-        // Add event listener for mouseup
         canvas.addEventListener("mouseup", function (evt) {
             draggingEnd = false;
         }, false);
+
+        window.onload = function () {
+            const canvas = document.getElementById('gridCanvas');
+            const ctx = canvas.getContext('2d');
+            const fetchDataBtn = document.getElementById('fetchDataBtn');
+            const canvasContainer = document.getElementById('canvasContainer');
+
+            function drawContent() {
+                // Clear the canvas first
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw a sample rectangle
+                ctx.fillStyle = "#0d1117";
+                ctx.fillRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+                // Draw sample text
+                ctx.fillStyle = "#e6edf3";
+                ctx.font = "48px Arial";
+                ctx.fillText("A* Pathfinder", 50, 75);
+
+                ctx.fillStyle = "#e6edf3";
+                ctx.font = "25px Arial";
+                ctx.fillText("Drag the end point and drag it around.", 50, 110);
+            }
+
+            function updateDimensions() {
+                const aspectRatio = cols / rows;
+
+                // Calculate available window width and height
+                let newWidth = cellSize * cols;
+                let newHeight = cellSize * rows;
+
+                // If the height becomes too large for the window, adjust it
+                if (newWidth * aspectRatio > newHeight) {
+                    newWidth = newHeight / aspectRatio;
+                } else {
+                    newHeight = newWidth * aspectRatio;
+                }
+
+                // Set new dimensions for the canvas
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+
+                // Update button and container width
+                fetchDataBtn.style.width = `${newWidth}px`;
+                canvasContainer.style.width = `${newWidth}px`;
+
+                // Redraw the content to fit new dimensions
+                drawContent();
+            }
+            // drawContent()
+
+            // Initial setting
+            updateDimensions();
+
+            // Update on window resize
+            window.addEventListener('resize', updateDimensions);
+        };
     </script>
 </body>
 
