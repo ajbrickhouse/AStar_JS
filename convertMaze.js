@@ -1,3 +1,4 @@
+console.log("convertMaze.js loaded");
 // Load the image into a canvas
 async function loadImage(src) {
     console.log("Entering loadImage with src:", src);
@@ -16,8 +17,10 @@ async function loadImage(src) {
 
 async function convertMaze(imagePath, colCount) {
     console.log("Called: convertMaze(", imagePath, colCount, ")");
+    window.sharedData = null;
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    canvas.willReadFrequently = true;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     // ctx.willReadFrequently(true);
     const img = await loadImage(imagePath);
     if(!img) {
@@ -59,16 +62,17 @@ async function convertMaze(imagePath, colCount) {
             const green = pixelData[1];
             const blue = pixelData[2];
             
-            const isWhite = (red + green + blue) / 3 >= 200;
+            const isWhite = (red + green + blue) / 3 >= 230;
             rowList.push(isWhite ? 1 : 0);
         }
         jsList.push(rowList);
     }
 
-    jsList.unshift("[");
-    jsList.push("]");
+    // jsList.unshift("[");
+    // jsList.push("]");
     // console.log("Generated jsList:", jsList);
     // 
+    window.sharedData = jsList;
     return { jsList };
 }
 

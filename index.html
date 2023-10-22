@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="convertMaze.js" defer></script>
     <title>Canvas Grid</title>
     <style>
         body,
@@ -13,33 +14,40 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            background-color: #171b22;
         }
 
         canvas {
             border: 2px solid black;
+        }
+
+        #fetchDataBtn {
+            width: 584px;
+            /* This will make the button expand to the full width of its container */
         }
     </style>
 
 </head>
 
 <body>
-    <div id="canvas">
-        <canvas id="gridCanvas" width="623" height="623"></canvas><br>
+    <div id="canvasContainer">
+        <canvas id="gridCanvas" width="500" height="500"></canvas><br>
+        <button id="fetchDataBtn">Fetch Data</button>
     </div>
-    <script id="converMaze">
 
-
-    </script>
     <script>
+        window.sharedData = null;
+
         // Get a reference to the canvas element
         const canvas = document.getElementById("gridCanvas");
+        canvas.willReadFrequently = true;
         const ctx = canvas.getContext("2d");
 
         // Constants
-        const cols = 29;
-        const rows = 29;
+        const cols = 201;
+        const rows = 201;
 
-        const cellSize = 20; // Size of each cell in pixels
+        const cellSize = 5; // Size of each cell in pixels
         const canvasWidth = cols * cellSize;
         const canvasHeight = rows * cellSize;
 
@@ -59,14 +67,11 @@
         // obstacles
         let obstacles = [];
         // Starting position
-        let start;
+        let start = null;
         // The target position
-        let end;
+        let end = null;
         let path = [];
-        // let mazeData
-        const mazeData  = await processMazeData('/mazes/maze.png', 29).then(result => result.data);
-
-        console.log("post-mazeData", mazeData);
+        let draggingEnd = false;
 
         // GridPoint class definition
         class GridPoint {
@@ -90,10 +95,10 @@
                 if (y > 0) this.neighbors.push(grid[x][y - 1]);
 
                 // Adding Diagonal Neighbors (also adjusted for rows)
-                if (x > 0 && y > 0) this.neighbors.push(grid[x - 1][y - 1]);
-                if (x < cols - 1 && y > 0) this.neighbors.push(grid[x + 1][y - 1]);
-                if (x > 0 && y < rows - 1) this.neighbors.push(grid[x - 1][y + 1]); // adjusted for rows
-                if (x < cols - 1 && y < rows - 1) this.neighbors.push(grid[x + 1][y + 1]); // adjusted for rows
+                // if (x > 0 && y > 0) this.neighbors.push(grid[x - 1][y - 1]);
+                // if (x < cols - 1 && y > 0) this.neighbors.push(grid[x + 1][y - 1]);
+                // if (x > 0 && y < rows - 1) this.neighbors.push(grid[x - 1][y + 1]); // adjusted for rows
+                // if (x < cols - 1 && y < rows - 1) this.neighbors.push(grid[x + 1][y + 1]); // adjusted for rows
             }
 
             show(color) {
@@ -104,16 +109,6 @@
                     ctx.fillStyle = color;
                     ctx.fillRect(this.x * w, this.y * h, w, h);
                 }
-            }
-        }
-
-        async function processMazeData(mazeImagePath, mazeSize) {
-            try {
-                let result = await convertMaze(mazeImagePath, mazeSize);
-                let jsListData = result.jsList;
-                return jsListData;
-            } catch (error) {
-                console.error("Error fetching post-mazeData:", error);
             }
         }
 
@@ -128,24 +123,78 @@
         function drawState() {
             // Draw the current state of the grid
             // fill grid with color
+            console.log("Drawing state");
             for (let i = 0; i < cols; i++) {
                 for (let j = 0; j < cols; j++) {
-                    grid[i][j].show("DarkOrange"); // Default color
+                    grid[i][j].show("#e6edf3"); // Default color
                 }
             }
-            for (let point of openSet) {
-                point.show("OrangeRed");
-            }
+            // for (let point of openSet) {
+            //     point.show("red");
+            // }
 
-            for (let point of closedSet) {
-                point.show("Tomato");
-            }
+            // for (let point of closedSet) {
+            //     point.show("tomato");
+            // }
 
-            for (let point of path) {
-                point.show("SeaGreen");
-            }
+            // for (let point of path) {
+            //     point.show("SeaGreen");
+            // }
         }
 
+        function pointDressing() {
+            const font = "20px Arial";
+
+            start.show("LimeGreen");
+            ctx.shadowColor = 'LimeGreen';
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = "LimeGreen";
+            ctx.fillRect(end.x * w + cellSize, end.y * h + cellSize, 16, 21);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "white";
+            ctx.fillRect(start.x * w + cellSize, start.y * h + cellSize, 16, 21);
+            ctx.strokeStyle = "LimeGreen";
+            ctx.strokeRect(start.x * w + cellSize, start.y * h + cellSize, 16, 21);
+            ctx.fillStyle = "black";
+            ctx.font = font;
+            ctx.fillText("S", start.x * w + cellSize + 1, start.y * h + cellSize + 18);
+
+            end.show("red");
+            ctx.shadowColor = 'red';
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = "red";
+            ctx.fillRect(end.x * w + cellSize, end.y * h + cellSize, 16, 21);
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "white";
+            ctx.fillRect(end.x * w + cellSize, end.y * h + cellSize, 16, 21);
+            ctx.strokeStyle = "red";
+            ctx.strokeRect(end.x * w + cellSize, end.y * h + cellSize, 16, 21);
+            ctx.fillStyle = "black";
+            ctx.font = font;
+            ctx.fillText("E", end.x * w + cellSize + 1, end.y * h + cellSize + 18);
+
+            ctx.shadowBlur = 0;
+        }
+
+        function drawPath() {
+            if (path.length > 1) {
+                ctx.beginPath();
+                ctx.moveTo(path[0].x * w + w / 2, path[0].y * h + h / 2);
+                for (let i = 1; i < path.length; i++) {
+                    const midX = (path[i].x * w + path[i - 1].x * w) / 2;
+                    const midY = (path[i].y * h + path[i - 1].y * h) / 2;
+                    ctx.quadraticCurveTo(
+                        path[i - 1].x * w + w / 2, path[i - 1].y * h + h / 2,
+                        midX + w / 2, midY + h / 2
+                    );
+                }
+                ctx.lineTo(path[path.length - 1].x * w + w / 2, path[path.length - 1].y * h + h / 2);
+                ctx.strokeStyle = "blue";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.closePath();
+            }
+        }
         // Draw the "No Path Found" text
         function drawNoPath() {
             // Draw a white rectangle as background
@@ -154,45 +203,42 @@
 
             // Display the "No Path Found" text
             ctx.fillStyle = "black";
-            ctx.font = "30px Arial";
+            ctx.font = "14px Verdana";
             ctx.fillText("No Path Found", canvasWidth / 3, canvasHeight / 2);
         }
 
         // Initialize grid
-        function init() {
+        function init(mazeData) {
             if (!mazeData || mazeData.length === 0) {
                 console.error("mazeData is not initialized");
                 return;
             }
             // let rn = Math.floor(Math.random() * 3);
-            let rn = 0;
 
-            if (!mazeData[rn]) {
-                console.error("Sub-array mazeData[" + rn + "] is undefined");
-                return;
-            }
 
             for (let x = 0; x < cols; x++) {
                 grid[x] = new Array(rows);
                 for (let y = 0; y < rows; y++) {
-                    if (mazeData[rn][y] && mazeData[rn][y][x] !== undefined) {
+                    if (mazeData[y][x] !== undefined) {
                         grid[x][y] = new GridPoint(x, y);
-                        grid[x][y].walkable = !!mazeData[rn][y][x];
+                        grid[x][y].walkable = !!mazeData[y][x];
                     } else {
-                        // console.error("Unable to access mazeData[" + rn + "][" + y + "][" + x + "]");
+                        // console.error("Unable to access mazeData[" + y + "][" + x + "]");
                     }
                 }
             }
 
-            // define start and end points
-            start = grid[0][1];
-            end = grid[cols - 1][cols - 2];
-            // add start as first element to be evaluated
-            openSet.push(start);
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < cols; j++) {
+                    grid[i][j].updateNeighbors(grid);
+                }
+            }
+
         }
 
         // A* Search
         function search() {
+            // print out start and end
             // Add drawing code to represent the states visually on the canvas
             while (openSet.length > 0) {
                 //assumption lowest index is the first one to begin with
@@ -203,7 +249,6 @@
                     }
                 }
                 let current = openSet[lowestIndex];
-
                 if (current === end) {
                     let temp = current;
                     path.push(temp);
@@ -212,9 +257,9 @@
                         temp = temp.parent;
                     }
                     console.log("DONE!");
-
                     drawState();
-
+                    drawPath();
+                    pointDressing();
                     return;
                 }
 
@@ -236,8 +281,7 @@
 
                     const dx = current.x - neighbor.x;
                     const dy = current.y - neighbor.y;
-                    const d = dx === 0 || dy === 0 ? 1 : Math.sqrt(
-                        2); // 1 if vertical/horizontal neighbor, sqrt(2) if diagonal
+                    const d = dx === 0 || dy === 0 ? 1 : 1;
 
                     const tentativeG = current.g + d;
 
@@ -260,9 +304,145 @@
             }
         }
 
-        // Call the search function
-        init();
-        search();
+        function clearAll() {
+            // clear f, g, h, parent, openSet, closedSet, and path
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < cols; j++) {
+                    grid[i][j].f = 0;
+                    grid[i][j].g = 0;
+                    grid[i][j].h = 0;
+                    grid[i][j].parent = undefined;
+                }
+            }
+            openSet = [];
+            closedSet = [];
+            path = [];
+            if (start) {
+                openSet.push(start);
+            }
+        }
+
+        // Function to get the grid coordinates from mouse position
+        function getMousePos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            const x = evt.clientX - rect.left;
+            const y = evt.clientY - rect.top;
+            return {
+                x: Math.floor(x / cellSize),
+                y: Math.floor(y / cellSize)
+            };
+        }
+
+        // Accessing globally shared data
+        window.addEventListener('DOMContentLoaded', (event) => {
+            document.getElementById('fetchDataBtn').addEventListener('click', async () => {
+                await convertMaze("/mazes/mazeLarge.png", 201); // Wait until data is fetched
+                let mazeData = window.sharedData;
+                // define start and end points
+
+                init(mazeData);
+                start = grid[0][1];
+                // end = grid[cols - 1][cols - 2];
+                // check if end is null
+                if (!end) {
+                    end = grid[cols - 15][cols - 22];
+                }
+                // add start as first element to be evaluated
+                openSet.push(start);
+                path = [];
+                search();
+            });
+        });
+
+        // Add event listener for mousedown
+        canvas.addEventListener("mousedown", function (evt) {
+            const pos = getMousePos(canvas, evt);
+            const tolerance = 10; // Set a tolerance value in pixels
+
+            // Check if clicked within the tolerance of the end point
+            if (Math.abs(pos.x - end.x) < tolerance && Math.abs(pos.y - end.y) < tolerance) {
+                draggingEnd = true;
+            }
+        }, false);
+
+        // Add event listener for mousemove
+        canvas.addEventListener("mousemove", function (evt) {
+            if (!draggingEnd) return;
+            const pos = getMousePos(canvas, evt);
+            // Check if the area is walkable before moving the endpoint
+            if (grid[pos.x][pos.y].walkable) {
+                end.x = pos.x;
+                end.y = pos.y;
+                clearAll(); // Clear previous state variables
+                init(window.sharedData); // Reinitialize grid
+                start = grid[0][1]; // Reinitialize start
+                end = grid[end.x][end.y]; // Reinitialize end
+                openSet.push(start); // Push new start into openSet
+                search(); // Restart search
+            }
+        }, false);
+
+        canvas.addEventListener("mouseup", function (evt) {
+            draggingEnd = false;
+        }, false);
+
+        window.onload = function () {
+            const canvas = document.getElementById('gridCanvas');
+            const ctx = canvas.getContext('2d');
+            const fetchDataBtn = document.getElementById('fetchDataBtn');
+            const canvasContainer = document.getElementById('canvasContainer');
+
+            function drawContent() {
+                // Clear the canvas first
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Draw a sample rectangle
+                ctx.fillStyle = "#0d1117";
+                ctx.fillRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+                // Draw sample text
+                ctx.fillStyle = "#e6edf3";
+                ctx.font = "48px Arial";
+                ctx.fillText("A* Pathfinder", 50, 75);
+
+                ctx.fillStyle = "#e6edf3";
+                ctx.font = "25px Arial";
+                ctx.fillText("Drag the end point and drag it around.", 50, 110);
+            }
+
+            function updateDimensions() {
+                const aspectRatio = cols / rows;
+
+                // Calculate available window width and height
+                let newWidth = cellSize * cols;
+                let newHeight = cellSize * rows;
+
+                // If the height becomes too large for the window, adjust it
+                if (newWidth * aspectRatio > newHeight) {
+                    newWidth = newHeight / aspectRatio;
+                } else {
+                    newHeight = newWidth * aspectRatio;
+                }
+
+                // Set new dimensions for the canvas
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+
+                // Update button and container width
+                fetchDataBtn.style.width = `${newWidth}px`;
+                canvasContainer.style.width = `${newWidth}px`;
+
+                // Redraw the content to fit new dimensions
+                drawContent();
+            }
+            // drawContent()
+
+            // Initial setting
+            updateDimensions();
+
+            // Update on window resize
+            window.addEventListener('resize', updateDimensions);
+        };
     </script>
 </body>
 
