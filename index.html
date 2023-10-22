@@ -95,10 +95,10 @@
                 if (y > 0) this.neighbors.push(grid[x][y - 1]);
 
                 // Adding Diagonal Neighbors (also adjusted for rows)
-                // if (x > 0 && y > 0) this.neighbors.push(grid[x - 1][y - 1]);
-                // if (x < cols - 1 && y > 0) this.neighbors.push(grid[x + 1][y - 1]);
-                // if (x > 0 && y < rows - 1) this.neighbors.push(grid[x - 1][y + 1]); // adjusted for rows
-                // if (x < cols - 1 && y < rows - 1) this.neighbors.push(grid[x + 1][y + 1]); // adjusted for rows
+                if (x > 0 && y > 0) this.neighbors.push(grid[x - 1][y - 1]);
+                if (x < cols - 1 && y > 0) this.neighbors.push(grid[x + 1][y - 1]);
+                if (x > 0 && y < rows - 1) this.neighbors.push(grid[x - 1][y + 1]); // adjusted for rows
+                if (x < cols - 1 && y < rows - 1) this.neighbors.push(grid[x + 1][y + 1]); // adjusted for rows
             }
 
             show(color) {
