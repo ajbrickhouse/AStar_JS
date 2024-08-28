@@ -4,10 +4,10 @@
 - [Pathfinding with Javascript: The A* Algorithm](https://dev.to/codesphere/pathfinding-with-javascript-the-a-algorithm-3jlb)
 
 #### Updates
-- Added diagnal movement
+- Added diagonal movement
 - Added obstacles
 - Converted to use canvas
-- Drag and drop end point with updating path
+- Drag and drop start and end points with updating path
 - Smoothed line drawn for path
 - Reads data directly from maze image
 
@@ -16,9 +16,9 @@
 
 #### Demo in codespace
 - Open this repo in a codespace
-- Start the server.py
-- Open link listed under port 8000 (ports tab above the terminal)
-    
+- Start the `server.py`
+- Open the link listed under port 8000 (ports tab above the terminal)
+
 #### Results
 <figure>
   <div>

@@ -72,6 +72,7 @@
         let end = null;
         let path = [];
         let draggingEnd = false;
+        let draggingStart = false; // Added variable to track dragging of start point
 
         // GridPoint class definition
         class GridPoint {
@@ -195,6 +196,7 @@
                 ctx.closePath();
             }
         }
+
         // Draw the "No Path Found" text
         function drawNoPath() {
             // Draw a white rectangle as background
@@ -213,8 +215,6 @@
                 console.error("mazeData is not initialized");
                 return;
             }
-            // let rn = Math.floor(Math.random() * 3);
-
 
             for (let x = 0; x < cols; x++) {
                 grid[x] = new Array(rows);
@@ -238,7 +238,6 @@
 
         // A* Search
         function search() {
-            // print out start and end
             // Add drawing code to represent the states visually on the canvas
             while (openSet.length > 0) {
                 //assumption lowest index is the first one to begin with
@@ -338,11 +337,9 @@
             document.getElementById('fetchDataBtn').addEventListener('click', async () => {
                 await convertMaze("/mazes/mazeLarge.png", 201); // Wait until data is fetched
                 let mazeData = window.sharedData;
-                // define start and end points
 
                 init(mazeData);
                 start = grid[0][1];
-                // end = grid[cols - 1][cols - 2];
                 // check if end is null
                 if (!end) {
                     end = grid[cols - 15][cols - 22];
@@ -362,20 +359,30 @@
             // Check if clicked within the tolerance of the end point
             if (Math.abs(pos.x - end.x) < tolerance && Math.abs(pos.y - end.y) < tolerance) {
                 draggingEnd = true;
+            } else if (Math.abs(pos.x - start.x) < tolerance && Math.abs(pos.y - start.y) < tolerance) {
+                draggingStart = true;
             }
         }, false);
 
         // Add event listener for mousemove
         canvas.addEventListener("mousemove", function (evt) {
-            if (!draggingEnd) return;
             const pos = getMousePos(canvas, evt);
-            // Check if the area is walkable before moving the endpoint
-            if (grid[pos.x][pos.y].walkable) {
+
+            if (draggingEnd && grid[pos.x][pos.y].walkable) {
                 end.x = pos.x;
                 end.y = pos.y;
                 clearAll(); // Clear previous state variables
                 init(window.sharedData); // Reinitialize grid
-                start = grid[0][1]; // Reinitialize start
+                start = grid[start.x][start.y]; // Reinitialize start
+                end = grid[end.x][end.y]; // Reinitialize end
+                openSet.push(start); // Push new start into openSet
+                search(); // Restart search
+            } else if (draggingStart && grid[pos.x][pos.y].walkable) {
+                start.x = pos.x;
+                start.y = pos.y;
+                clearAll(); // Clear previous state variables
+                init(window.sharedData); // Reinitialize grid
+                start = grid[start.x][start.y]; // Reinitialize start
                 end = grid[end.x][end.y]; // Reinitialize end
                 openSet.push(start); // Push new start into openSet
                 search(); // Restart search
@@ -384,6 +391,7 @@
 
         canvas.addEventListener("mouseup", function (evt) {
             draggingEnd = false;
+            draggingStart = false; // Added this line to reset draggingStart
         }, false);
 
         window.onload = function () {
